@@ -10,6 +10,9 @@ import random
 from numba import njit
 from pygame_env import player,circle
 from hashing_encoding_colors import encode_players_with_same_genes
+from networkx.drawing.nx_pylab import draw_networkx_nodes, draw_networkx_labels
+from matplotlib.patches import FancyArrowPatch
+
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 def directions_dict_generator(population):
@@ -40,11 +43,11 @@ def co_ordinates_initialize_dict(env_width,env_height,population,size_parameter)
     for i in range(population):
         rect_co_ordinates_dict['player'+str(i)]=[]
         while True:
-            x=random.randint(size_parameter+1,env_width-size_parameter)
-            y=random.randint(size_parameter+1,env_height-size_parameter)
+            x=random.randint(3*size_parameter//2+1,env_width-3*size_parameter//2-1)
+            y=random.randint(3*size_parameter//2+1,env_height-3*size_parameter//2-1)
             if [x,y] not in used_co_ordinates:
-                for x_rect in range(x-2*size_parameter-1,x+2*size_parameter+1):
-                    for y_rect in range(y-2*size_parameter-1,y+2*size_parameter+1):
+                for x_rect in range(x-3*size_parameter//2,x+3*size_parameter//2):
+                    for y_rect in range(y-3*size_parameter//2,y+3*size_parameter//2):
                         used_co_ordinates.append([x_rect,y_rect])
                         rect_co_ordinates_dict['player'+str(i)].append([x_rect,y_rect])
                 co_ordinates_dict['player'+str(i)]=[x,y]
@@ -122,14 +125,96 @@ def processed_data_to_brain(genes_hexa_list,genes_list,activation_inputs_dict,nu
     #print('last_go_self.genes_list:',final_brain.genes_list)
     return final_brain
 
+# def graph_visuals(genes_list):
+#     graph=nx.MultiDiGraph()
+#     counter=0
+#     for gene in genes_list:
+#         graph.add_edge(gene['source_ID'],gene['sink_ID'],key=counter)
+#         counter+=1
+#     nx.draw_circular(graph,with_labels=True)
+#     plt.show()
+
+# def graph_visuals(genes_list):
+#     graph = nx.MultiDiGraph()
+#     counter = 0
+#
+#     # Add edges with connection weights
+#     for gene in genes_list:
+#         source = gene['source_ID']
+#         sink = gene['sink_ID']
+#         weight = gene['connection_weight']
+#         color = 'green' if weight > 0 else 'red'
+#         graph.add_edge(source, sink, key=counter, weight=weight, color=color)
+#         counter += 1
+#
+#     # Get edge colors
+#     edge_colors = [graph[u][v][k]['color'] for u, v, k in graph.edges(keys=True)]
+#
+#     # Draw the graph with curved arrows
+#     pos = nx.circular_layout(graph)  # Use a circular layout for positioning nodes
+#     arc_rad = 0.1  # Radius of curvature for the edges
+#
+#     # Draw the nodes
+#     nx.draw_networkx_nodes(graph, pos, node_size=700)
+#
+#     # Draw the edges with curvature and colors
+#     for (u, v, k, d) in graph.edges(data=True, keys=True):
+#         edge_color = d['color']
+#         connection_style = 'arc3,rad={}'.format(arc_rad)
+#         nx.draw_networkx_edges(graph, pos, edgelist=[(u, v)], edge_color=edge_color, connectionstyle=connection_style)
+#
+#     # Draw labels
+#     nx.draw_networkx_labels(graph, pos, font_size=12, font_family="sans-serif")
+#
+#     plt.title("Gene Interaction Network")
+#     plt.show()
+
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
+from networkx.drawing.nx_pylab import draw_networkx_nodes, draw_networkx_labels
+
 def graph_visuals(genes_list):
-    graph=nx.MultiDiGraph()
-    counter=0
+    graph = nx.MultiDiGraph()
+    counter = 0
+
+    # Add edges with connection weights
     for gene in genes_list:
-        graph.add_edge(gene['source_ID'],gene['sink_ID'],key=counter)
-        counter+=1
-    nx.draw_circular(graph,with_labels=True)
+        source = gene['source_ID']
+        sink = gene['sink_ID']
+        weight = gene['connection_weight']
+        color = 'green' if weight > 0 else 'red'
+        graph.add_edge(source, sink, key=counter, weight=weight, color=color)
+        counter += 1
+
+    # Draw the graph
+    pos = nx.circular_layout(graph)  # Use a circular layout for positioning nodes
+    fig, ax = plt.subplots()
+
+    # Draw the nodes and labels
+    draw_networkx_nodes(graph, pos, node_size=700, ax=ax)
+    draw_networkx_labels(graph, pos, font_size=12, font_family="sans-serif", ax=ax)
+
+    # Draw the curved edges with colors
+    for (u, v, k, d) in graph.edges(data=True, keys=True):
+        rad = 0.25 if u != v else 0.1  # Self-loops need a smaller curvature
+        color = d['color']
+        arrow = FancyArrowPatch(
+            posA=pos[u], posB=pos[v],
+            connectionstyle=f"arc3,rad={rad}",
+            arrowstyle='-|>',
+            color=color,
+            mutation_scale=20,
+            lw=1.5,
+            shrinkA=10,  # Shrink start of the arrow away from the node
+            shrinkB=10   # Shrink end of the arrow away from the node
+        )
+        ax.add_patch(arrow)
+
+    plt.title("Gene Interaction Network")
+    plt.axis('off')  # Turn off the axis
     plt.show()
+
 
 def genes_to_brain(genes_hexa_list,activation_inputs_dict,num_neurons,show_graph=False):
     genes_list=[]
@@ -153,6 +238,23 @@ def genes_to_brain(genes_hexa_list,activation_inputs_dict,num_neurons,show_graph
     #print('another self.genes_list:',brain.genes_list)
     return brain
 #{neuron1:input_activations_dict_1,.......} => input_activation_dict1={'S0':0.1,.....}
+
+def genes_hexa_list_to_genes_list(genes_hexa_list,num_neurons):
+    genes_list = []
+    for hex_value in genes_hexa_list:
+        gene_data = gene_to_unprocessed_data(hex_value)
+        gene_data = unprocessed_data_to_processed_data(gene_data, num_sensory=num_neurons[0],
+                                                       num_internal=num_neurons[1], num_output=num_neurons[2])
+        flag = True
+        for gene in genes_list:  # removing bidirectional connections of neurons
+            if gene['source_ID'] == gene_data['sink_ID'] and gene['sink_ID'] == gene_data['source_ID']:
+                flag = False
+            if gene['source_ID'] == gene_data['source_ID'] and gene['sink_ID'] == gene_data['sink_ID']:
+                gene['connection_weight'] += gene_data['connection_weight']
+                flag = False
+        if flag == True:
+            genes_list.append(gene_data)
+    return genes_list
 def sense_to_inputs_activations(screen,players_dict,step,steps_per_gen,size_parameter,seed=0):
     combined_activation_inputs_dict={}
     for i in range(len(list(players_dict.keys()))): #len(player_list)=population
@@ -206,8 +308,8 @@ def sense_to_inputs_activations(screen,players_dict,step,steps_per_gen,size_para
                 first bracket for moving left case(moving west) and second bracket for moving right case(moving east)
                 '''
                 #first if statement for perpendicular axis and 2nd if statement for axial axis
-                if (player.co_ordinates_list[1]-my_player_co_ordinates_list[1]<size_parameter and player.co_ordinates_list[1]-my_player_co_ordinates_list[1]>-size_parameter):
-                    if (player.co_ordinates_list[0]>(my_player_co_ordinates_list[0] - 2*size_parameter) and my_player_co_ordinates_list[0]>player.co_ordinates_list[0]) or (player.co_ordinates_list[0]< (my_player_co_ordinates_list[0] + 2*size_parameter) and my_player_co_ordinates_list[0]<player.co_ordinates_list[0]):
+                if abs(player.co_ordinates_list[1]-my_player_co_ordinates_list[1])<3*size_parameter:
+                    if (player.co_ordinates_list[0]>(my_player_co_ordinates_list[0] - 4*size_parameter) and my_player_co_ordinates_list[0]>player.co_ordinates_list[0]) or (player.co_ordinates_list[0]< (my_player_co_ordinates_list[0] + 4*size_parameter) and my_player_co_ordinates_list[0]<player.co_ordinates_list[0]):
                         combined_activation_inputs_dict['player' + str(i)]['S2'] = 1
                         flag=True
             elif my_player_direction=='west' or my_player_direction=='east':
@@ -217,8 +319,8 @@ def sense_to_inputs_activations(screen,players_dict,step,steps_per_gen,size_para
                 first bracket for moving left case(moving north) and second bracket for moving right case(moving south)
                 '''
                 # first if statement for perpendicular axis and 2nd if statement for axial axis
-                if (player.co_ordinates_list[0] - my_player_co_ordinates_list[0] < size_parameter and player.co_ordinates_list[0] - my_player_co_ordinates_list[0] > -size_parameter):
-                    if (player.co_ordinates_list[1]>(my_player_co_ordinates_list[1] - 2*size_parameter) and my_player_co_ordinates_list[1]>player.co_ordinates_list[1]) or (player.co_ordinates_list[1]< (my_player_co_ordinates_list[1] + 2*size_parameter) and my_player_co_ordinates_list[1]<player.co_ordinates_list[1]):
+                if abs(player.co_ordinates_list[0] - my_player_co_ordinates_list[0]) < 3*size_parameter:
+                    if (player.co_ordinates_list[1]>(my_player_co_ordinates_list[1] - 4*size_parameter) and my_player_co_ordinates_list[1]>player.co_ordinates_list[1]) or (player.co_ordinates_list[1]< (my_player_co_ordinates_list[1] + 4*size_parameter) and my_player_co_ordinates_list[1]<player.co_ordinates_list[1]):
                         combined_activation_inputs_dict['player' + str(i)]['S2'] = 1
                         flag=True
             if flag == False:
@@ -226,23 +328,23 @@ def sense_to_inputs_activations(screen,players_dict,step,steps_per_gen,size_para
             #S3:blockage forward
             flag=False
             if my_player_direction=='north':
-                if (player.co_ordinates_list[0] - my_player_co_ordinates_list[0] < size_parameter and player.co_ordinates_list[0] - my_player_co_ordinates_list[0] > -size_parameter):
-                    if (player.co_ordinates_list[1]>(my_player_co_ordinates_list[1] - 2*size_parameter) and my_player_co_ordinates_list[1]>player.co_ordinates_list[1]):
+                if abs(player.co_ordinates_list[0] - my_player_co_ordinates_list[0] < 3*size_parameter):
+                    if (player.co_ordinates_list[1]>(my_player_co_ordinates_list[1] - 4*size_parameter) and my_player_co_ordinates_list[1]>player.co_ordinates_list[1]):
                         combined_activation_inputs_dict['player' + str(i)]['S3'] = 1
                         flag = True
             elif my_player_direction == 'south':
-                if (player.co_ordinates_list[0] - my_player_co_ordinates_list[0] < size_parameter and player.co_ordinates_list[0] - my_player_co_ordinates_list[0] > -size_parameter):
-                    if (player.co_ordinates_list[1]< (my_player_co_ordinates_list[1] + 2*size_parameter) and my_player_co_ordinates_list[1]<player.co_ordinates_list[1]):
+                if abs(player.co_ordinates_list[0] - my_player_co_ordinates_list[0] < 3*size_parameter):
+                    if (player.co_ordinates_list[1]< (my_player_co_ordinates_list[1] + 4*size_parameter) and my_player_co_ordinates_list[1]<player.co_ordinates_list[1]):
                         combined_activation_inputs_dict['player' + str(i)]['S3'] = 1
                         flag = True
             elif my_player_direction == 'west':
-                if (player.co_ordinates_list[1] - my_player_co_ordinates_list[1] < size_parameter and player.co_ordinates_list[1] - my_player_co_ordinates_list[1] > -size_parameter):
-                    if (player.co_ordinates_list[0]>(my_player_co_ordinates_list[0] - 2*size_parameter) and my_player_co_ordinates_list[0]>player.co_ordinates_list[0]):
+                if abs(player.co_ordinates_list[1] - my_player_co_ordinates_list[1] < 3*size_parameter):
+                    if (player.co_ordinates_list[0]>(my_player_co_ordinates_list[0] - 4*size_parameter) and my_player_co_ordinates_list[0]>player.co_ordinates_list[0]):
                         combined_activation_inputs_dict['player' + str(i)]['S3'] = 1
                         flag = True
             elif my_player_direction == 'east':
-                if (player.co_ordinates_list[1] - my_player_co_ordinates_list[1] < size_parameter and player.co_ordinates_list[1] - my_player_co_ordinates_list[1] > -size_parameter):
-                    if (player.co_ordinates_list[0]< (my_player_co_ordinates_list[0] + 2*size_parameter) and my_player_co_ordinates_list[0]<player.co_ordinates_list[0]):
+                if abs(player.co_ordinates_list[1] - my_player_co_ordinates_list[1] < 3*size_parameter):
+                    if (player.co_ordinates_list[0]< (my_player_co_ordinates_list[0] + 4*size_parameter) and my_player_co_ordinates_list[0]<player.co_ordinates_list[0]):
                         combined_activation_inputs_dict['player' + str(i)]['S3'] = 1
                         flag = True
             if flag == False:
@@ -359,43 +461,52 @@ def update_activations(players_dict,combined_activation_inputs_dict):
 
 def position_errors_resolve(my_player,players_dict,screen,size_parameter):
     for player_name, player in players_dict.items():
-        if (player!=my_player) and len(my_player.co_ordinates_history_list)>=2 and (abs(player.co_ordinates_list[0]-my_player.co_ordinates_list[0])<2*size_parameter) and (abs(player.co_ordinates_list[1]-my_player.co_ordinates_list[1])<2*size_parameter):
+        if ((player!=my_player) and len(my_player.co_ordinates_history_list)>=2 and (abs(player.co_ordinates_list[0]-my_player.co_ordinates_list[0])<size_parameter) and (abs(player.co_ordinates_list[1]-my_player.co_ordinates_list[1])<size_parameter)):
             my_player.co_ordinates_history_list.remove(my_player.co_ordinates_list)
+            #print(my_player.co_ordinates_history_list)
             my_player.co_ordinates_list = my_player.co_ordinates_history_list[-1]
+            my_player.rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(my_player.co_ordinates_list, size_parameter)
             break
-    if (len(my_player.co_ordinates_history_list)>=2) and (my_player.co_ordinates_list[0]+size_parameter> screen.get_size()[0] or my_player.co_ordinates_list[0]-size_parameter<0 or my_player.co_ordinates_list[1]+size_parameter>screen.get_size()[1] or my_player.co_ordinates_list[1]-size_parameter<0):
+    if (len(my_player.co_ordinates_history_list)>=2) and (my_player.co_ordinates_list[0]+3*size_parameter//2> screen.get_size()[0] or my_player.co_ordinates_list[0]-3*size_parameter//2<0 or my_player.co_ordinates_list[1]+3*size_parameter//2>screen.get_size()[1] or my_player.co_ordinates_list[1]-3*size_parameter//2<0):
         my_player.co_ordinates_history_list.remove(my_player.co_ordinates_list)
         print(len(my_player.co_ordinates_history_list))
         my_player.co_ordinates_list = my_player.co_ordinates_history_list[-1]
+        my_player.rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(my_player.co_ordinates_list, size_parameter)
     return my_player,players_dict
 
+def change_co_ordinates_to_rect_co_ordinates(co_ordinates_list,size_parameter):
+    x=co_ordinates_list[0]
+    y=co_ordinates_list[1]
+    rect_co_ordinates_list=[]
+    for x_rect in range(x - 3*size_parameter//2 - 1, x + 3*size_parameter//2 + 1):
+        for y_rect in range(y - 3*size_parameter//2 - 1, y + 3*size_parameter//2 + 1):
+            rect_co_ordinates_list.append([x_rect, y_rect])
+    return rect_co_ordinates_list
 def change(players_dict,screen,size_parameter,kill_neuron=False):
     for i in range(len(list(players_dict.keys()))):
-        if players_dict['player'+str(i)].co_ordinates_list[0]+2*size_parameter>screen.get_width():
-            # print("wow!")
-            # print(players_dict['player' + str(i)].co_ordinates_list[0])
-            # print(screen.get_width()-size_parameter//2)
-            players_dict['player' + str(i)].co_ordinates_list[0]=screen.get_width()-2*size_parameter-1
-        if players_dict['player'+str(i)].co_ordinates_list[1]+2*size_parameter>screen.get_height():
-            players_dict['player' + str(i)].co_ordinates_list[1]=screen.get_height()-2*size_parameter-1
-        if players_dict['player'+str(i)].co_ordinates_list[0]-2*size_parameter<0:
-            players_dict['player' + str(i)].co_ordinates_list[0] =2*size_parameter+1
-        if players_dict['player'+str(i)].co_ordinates_list[1]-2*size_parameter<0:
-            players_dict['player' + str(i)].co_ordinates_list[1] = 2*size_parameter+1
+        combined_co_ordinates_list=[]
+        for player_name, player in players_dict.items():
+            if player!=players_dict['player'+str(i)]:
+                for j in range(len(player.rect_co_ordinates_list)):
+                    combined_co_ordinates_list.append(player.rect_co_ordinates_list[j])
+            else:
+                pass
+        #print([players_dict['player' + str(i)].co_ordinates_list[0] + size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list)
         for output_neu in players_dict['player'+str(i)].brain.output_neurons_list:
             output_activation=players_dict['player'+str(i)].brain.neurons_dict[output_neu].activation
             #O0:move random
             if output_neu=='O0':
                 index=random.randint(1,4)
-                if index==1:
+                if index==1 and [players_dict['player'+str(i)].co_ordinates_list[0]+size_parameter,players_dict['player'+str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                     players_dict['player'+str(i)].co_ordinates_list[0]+=size_parameter
-                elif index==2:
+                elif index==2 and [players_dict['player'+str(i)].co_ordinates_list[0]-size_parameter,players_dict['player'+str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                     players_dict['player'+str(i)].co_ordinates_list[0]-=size_parameter
-                elif index==3:
+                elif index==3 and [players_dict['player'+str(i)].co_ordinates_list[0],players_dict['player'+str(i)].co_ordinates_list[1]+size_parameter] not in combined_co_ordinates_list:
                     players_dict['player'+str(i)].co_ordinates_list[1]+=size_parameter
-                elif index==4:
+                elif index==4 and [players_dict['player'+str(i)].co_ordinates_list[0],players_dict['player'+str(i)].co_ordinates_list[1]-size_parameter]  not in combined_co_ordinates_list:
                     players_dict['player'+str(i)].co_ordinates_list[1]-=size_parameter
                 players_dict['player'+str(i)].co_ordinates_history_list.append(players_dict['player'+str(i)].co_ordinates_list)
+                players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
                 players_dict['player'+str(i)],players_dict=position_errors_resolve(players_dict['player'+str(i)],players_dict,screen,size_parameter)
 
             #O1:move left/right(-1,1)
@@ -403,92 +514,107 @@ def change(players_dict,screen,size_parameter,kill_neuron=False):
                 if output_activation>0:
                     inp=random.choices([0,1],weights=[1-output_activation,output_activation])
                     if inp==[1]:
-                        if players_dict['player'+str(i)].direction=='north':
+                        if players_dict['player'+str(i)].direction=='north' and [players_dict['player'+str(i)].co_ordinates_list[0]+size_parameter,players_dict['player'+str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                             players_dict['player'+str(i)].co_ordinates_list[0]+=size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        elif players_dict['player'+str(i)].direction=='south':
+                        elif players_dict['player'+str(i)].direction=='south' and [players_dict['player'+str(i)].co_ordinates_list[0]-size_parameter,players_dict['player'+str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                             players_dict['player'+str(i)].co_ordinates_list[0]-=size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        elif players_dict['player'+str(i)].direction=='west':
+                        elif players_dict['player'+str(i)].direction=='west' and [players_dict['player'+str(i)].co_ordinates_list[0],players_dict['player'+str(i)].co_ordinates_list[1]-size_parameter] not in combined_co_ordinates_list:
                             players_dict['player'+str(i)].co_ordinates_list[1]-=size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        elif players_dict['player'+str(i)].direction=='east':
+                        elif players_dict['player'+str(i)].direction=='east' and [players_dict['player'+str(i)].co_ordinates_list[0],players_dict['player'+str(i)].co_ordinates_list[1]+size_parameter] not in combined_co_ordinates_list:
                             players_dict['player'+str(i)].co_ordinates_list[1]+=size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
                         players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)], players_dict, screen, size_parameter)
                 elif output_activation<0:
                     inp=random.choices([0,1],weights=[1-abs(output_activation),abs(output_activation)])
                     if inp==[1]:
-                        if players_dict['player' + str(i)].direction == 'north':
+                        if players_dict['player' + str(i)].direction == 'north' and [players_dict['player' + str(i)].co_ordinates_list[0] - size_parameter,players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                             players_dict['player' + str(i)].co_ordinates_list[0] -= size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        elif players_dict['player' + str(i)].direction == 'south':
+                        elif players_dict['player' + str(i)].direction == 'south' and [players_dict['player' + str(i)].co_ordinates_list[0] + size_parameter,players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                             players_dict['player' + str(i)].co_ordinates_list[0] += size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        elif players_dict['player' + str(i)].direction == 'west':
+                        elif players_dict['player' + str(i)].direction == 'west' and [players_dict['player' + str(i)].co_ordinates_list[0],players_dict['player' + str(i)].co_ordinates_list[1] + size_parameter] not in combined_co_ordinates_list:
                             players_dict['player' + str(i)].co_ordinates_list[1] += size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        elif players_dict['player' + str(i)].direction == 'east':
+                        elif players_dict['player' + str(i)].direction == 'east' and [players_dict['player' + str(i)].co_ordinates_list[0],players_dict['player' + str(i)].co_ordinates_list[1] - size_parameter] not in combined_co_ordinates_list:
                             players_dict['player' + str(i)].co_ordinates_list[1] -= size_parameter
                             players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)],players_dict, screen,size_parameter)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
+                        players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)], players_dict, screen, size_parameter)
             #O2:move forward
             elif output_neu=='O2':
                 if output_activation > 0:
                     inp = random.choices([0, 1], weights=[1 - output_activation, output_activation])
                     if inp==[1]:
-                        if players_dict['player'+str(i)].direction=='north':
-                            players_dict['player' + str(i)].co_ordinates_list[1]-= size_parameter
-                        elif players_dict['player'+str(i)].direction=='south':
-                            players_dict['player' + str(i)].co_ordinates_list[1]+= size_parameter
-                        elif players_dict['player'+str(i)].direction=='west':
-                            players_dict['player' + str(i)].co_ordinates_list[0]-= size_parameter
-                        elif players_dict['player'+str(i)].direction=='east':
-                            players_dict['player' + str(i)].co_ordinates_list[0]+= size_parameter
-                        players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)],players_dict, screen,size_parameter)
+                        if players_dict['player' + str(i)].direction == 'north' and [players_dict['player' + str(i)].co_ordinates_list[0], players_dict['player' + str(i)].co_ordinates_list[1]-size_parameter] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[1] -= size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        elif players_dict['player' + str(i)].direction == 'south' and [players_dict['player' + str(i)].co_ordinates_list[0] , players_dict['player' + str(i)].co_ordinates_list[1]+size_parameter] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[1] += size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        elif players_dict['player' + str(i)].direction == 'west' and [players_dict['player' + str(i)].co_ordinates_list[0]-size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[0] -= size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        elif players_dict['player' + str(i)].direction == 'east' and [players_dict['player' + str(i)].co_ordinates_list[0]+size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[0] += size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
+                        players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)], players_dict, screen, size_parameter)
             #O3:move reverse
             elif output_neu=='O3':
                 if output_activation > 0:
                     inp = random.choices([0, 1], weights=[1 - output_activation, output_activation])
                     if inp==[1]:
-                        if players_dict['player'+str(i)].direction=='north':
-                            players_dict['player' + str(i)].co_ordinates_list[1]+= size_parameter
-                        elif players_dict['player'+str(i)].direction=='south':
-                            players_dict['player' + str(i)].co_ordinates_list[1]-= size_parameter
-                        elif players_dict['player'+str(i)].direction=='west':
-                            players_dict['player' + str(i)].co_ordinates_list[0]+= size_parameter
-                        elif players_dict['player'+str(i)].direction=='east':
-                            players_dict['player' + str(i)].co_ordinates_list[0]-= size_parameter
-                        players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
-                        players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)],players_dict, screen,size_parameter)
+                        if players_dict['player' + str(i)].direction == 'north' and [players_dict['player' + str(i)].co_ordinates_list[0], players_dict['player' + str(i)].co_ordinates_list[1] + size_parameter] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[1] += size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        elif players_dict['player' + str(i)].direction == 'south' and [players_dict['player' + str(i)].co_ordinates_list[0], players_dict['player' + str(i)].co_ordinates_list[1] - size_parameter] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[1] -= size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        elif players_dict['player' + str(i)].direction == 'west' and [players_dict['player' + str(i)].co_ordinates_list[0] + size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[0] += size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        elif players_dict['player' + str(i)].direction == 'east' and [players_dict['player' + str(i)].co_ordinates_list[0] - size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
+                            players_dict['player' + str(i)].co_ordinates_list[0] -= size_parameter
+                            players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
+                        players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)], players_dict, screen, size_parameter)
+                    # O3:move reverse
             #O4:move south/north(1,-1)
             elif output_neu=='O4':
                 if output_activation>0:
                     inp=random.choices([0,1],weights=[1-output_activation,output_activation])
-                    if inp==[1]:
+                    if inp==[1] and [players_dict['player' + str(i)].co_ordinates_list[0], players_dict['player' + str(i)].co_ordinates_list[1] + size_parameter] not in combined_co_ordinates_list:
                         players_dict['player' + str(i)].co_ordinates_list[1] += size_parameter
                         players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
                         players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)], players_dict, screen, size_parameter)
                 elif output_activation<0:
                     inp=random.choices([0,1],weights=[1-abs(output_activation),abs(output_activation)])
-                    if inp==[1]:
+                    if inp==[1] and [players_dict['player' + str(i)].co_ordinates_list[0], players_dict['player' + str(i)].co_ordinates_list[1] - size_parameter] not in combined_co_ordinates_list:
                         players_dict['player' + str(i)].co_ordinates_list[1] -= size_parameter
                         players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
                         players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)],players_dict, screen,size_parameter)
             #O5:move west/east(-1, 1)
             elif output_neu=='O5':
                 if output_activation>0:
                     inp=random.choices([0,1],weights=[1-output_activation,output_activation])
-                    if inp==[1]:
+                    if inp==[1] and [players_dict['player' + str(i)].co_ordinates_list[0]+size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                         players_dict['player' + str(i)].co_ordinates_list[0] += size_parameter
                         players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
                         players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)], players_dict, screen, size_parameter)
                 elif output_activation<0:
                     inp=random.choices([0,1],weights=[1-abs(output_activation),abs(output_activation)])
-                    if inp==[1]:
+                    if inp==[1] and [players_dict['player' + str(i)].co_ordinates_list[0]-size_parameter, players_dict['player' + str(i)].co_ordinates_list[1]] not in combined_co_ordinates_list:
                         players_dict['player' + str(i)].co_ordinates_list[0] -= size_parameter
                         players_dict['player' + str(i)].co_ordinates_history_list.append(players_dict['player' + str(i)].co_ordinates_list)
+                        players_dict['player' + str(i)].rect_co_ordinates_list = change_co_ordinates_to_rect_co_ordinates(players_dict['player' + str(i)].co_ordinates_list, size_parameter)
                         players_dict['player' + str(i)], players_dict = position_errors_resolve(players_dict['player' + str(i)],players_dict, screen,size_parameter)
             #O6:kill forward/reverse(1,-1)
             elif output_neu=='O6' and kill_neuron==True:
@@ -496,8 +622,8 @@ def change(players_dict,screen,size_parameter,kill_neuron=False):
                 if output_activation>0:
                     kill_co_ordinates_list=[]
                     if players_dict['player' + str(i)].direction=='north':
-                        for x in range(players_dict['player'+str(i)].co_ordinates_list[0]-size_parameter,players_dict['player'+str(i)].co_ordinates_list[0]+size_parameter):
-                            for y in range(players_dict['player'+str(i)].co_ordinates_list[1]-2*size_parameter,players_dict['player'+str(i)].co_ordinates_list[0]-size_parameter//2):
+                        for x in range(players_dict['player'+str(i)].co_ordinates_list[0]-size_parameter,players_dict['player'+str(i)].co_ordinates_list[0]):
+                            for y in range(players_dict['player'+str(i)].co_ordinates_list[1]-4*size_parameter,players_dict['player'+str(i)].co_ordinates_list[0]-4*size_parameter):
                                 kill_co_ordinates_list.append([x,y])
                     elif players_dict['player' + str(i)].direction=='south':
                         for x in range(players_dict['player'+str(i)].co_ordinates_list[0]-size_parameter,players_dict['player'+str(i)].co_ordinates_list[0]+size_parameter):
@@ -541,10 +667,21 @@ def change(players_dict,screen,size_parameter,kill_neuron=False):
                                 killed_players_list.append(player_name)
                 for player_name in killed_players_list:
                     del players_dict[player_name]
+        if players_dict['player' + str(i)].co_ordinates_list[0] + 3 * size_parameter // 2 > screen.get_width():
+            # print("wow!")
+            # print(players_dict['player' + str(i)].co_ordinates_list[0])
+            # print(screen.get_width()-size_parameter//2)
+            players_dict['player' + str(i)].co_ordinates_list[0] = screen.get_width() - 3 * size_parameter // 2 - 1
+        if players_dict['player' + str(i)].co_ordinates_list[1] + 3 * size_parameter // 2 > screen.get_height():
+            players_dict['player' + str(i)].co_ordinates_list[1] = screen.get_height() - 3 * size_parameter // 2 - 2
+        if players_dict['player' + str(i)].co_ordinates_list[0] - 3 * size_parameter // 2 < 0:
+            players_dict['player' + str(i)].co_ordinates_list[0] = 3 * size_parameter // 2 + 2
+        if players_dict['player' + str(i)].co_ordinates_list[1] - 3 * size_parameter // 2 < 0:
+            players_dict['player' + str(i)].co_ordinates_list[1] = 3 * size_parameter // 2 + 2
         output_activations_list=[]
-        for output_neu in players_dict['player'+str(i)].brain.output_neurons_list:
-            x=players_dict['player'+str(i)].brain.neurons_dict[output_neu].activation
-            output_activations_list.append(x)
+        # for output_neu in players_dict['player'+str(i)].brain.output_neurons_list:
+        #     x=players_dict['player'+str(i)].brain.neurons_dict[output_neu].activation
+        #     output_activations_list.append(x)
 
         #print(f'players changed:{i},  ',players_dict['player'+str(i)].brain.output_neurons_list,'  ',output_activations_list)
         print(f'players changed:{i}')
@@ -608,7 +745,7 @@ def mutate(players_dict,num_neurons,remaining_players_list,mutation_prob=0.01):
                 players_dict[remaining_players_list[i]].brain=final_brain
                 players_dict[remaining_players_list[i]].genes_list=final_brain.genes_list
     return players_dict,num_mutations
-def replicate(players_dict,env_width,env_height,size_parameter,remaining_players_list,player_size,default_population=400):
+def replicate(players_dict,env_width,env_height,size_parameter,remaining_players_list,default_population=400):
     babies_per_player=default_population//len(list(players_dict.keys()))
     population=babies_per_player*len(list(players_dict.keys()))
     new_players_dict={}
@@ -616,7 +753,7 @@ def replicate(players_dict,env_width,env_height,size_parameter,remaining_players
     for i in range(len(list(players_dict.keys()))):
         genes_hexa_dict[remaining_players_list[i]]=players_dict[remaining_players_list[i]].brain.genes_hexa_list
     #print(genes_hexa_dict)
-    colors_dict = encode_players_with_same_genes(genes_hexa_dict)
+    colors_dict,max_gene,max_value = encode_players_with_same_genes(genes_hexa_dict)
     directions_dict=directions_dict_generator(default_population)
     co_ordinates_dict, rect_co_ordinates_dict = co_ordinates_initialize_dict(env_width, env_height, default_population,size_parameter)
     for i in range(len(list(players_dict.keys()))):
@@ -626,7 +763,7 @@ def replicate(players_dict,env_width,env_height,size_parameter,remaining_players
             new_players_dict['player' + str(i * babies_per_player + j)].co_ordinates_list, new_players_dict['player' + str(i * babies_per_player + j)].rect_co_ordinates_list=co_ordinates_dict['player' + str(i * babies_per_player + j)],rect_co_ordinates_dict['player' + str(i * babies_per_player + j)]
             new_players_dict['player'+str(i*babies_per_player+j)].co_ordinates_history_list=[new_players_dict['player' + str(i * babies_per_player + j)].co_ordinates_list]
             color = colors_dict[remaining_players_list[i]]
-            new_players_dict['player'+str(i*babies_per_player+j)].pygame_object=circle(new_players_dict['player'+str(i*babies_per_player+j)].co_ordinates_list, color, radius=player_size // 2)
+            new_players_dict['player'+str(i*babies_per_player+j)].pygame_object=circle(new_players_dict['player'+str(i*babies_per_player+j)].co_ordinates_list, color, radius=size_parameter // 2)
     remaining_population=default_population-len(list(players_dict.keys()))*babies_per_player
     for k in range(remaining_population):
         new_players_dict['player'+str(len(players_dict.keys())*babies_per_player+k)]=players_dict[remaining_players_list[k]].__deepcopy__()
@@ -636,14 +773,14 @@ def replicate(players_dict,env_width,env_height,size_parameter,remaining_players
             'player' + str(len(players_dict.keys())*babies_per_player+k)].rect_co_ordinates_list = co_ordinates_dict[
             'player' + str(len(players_dict.keys())*babies_per_player+k)], rect_co_ordinates_dict[
             'player' + str(len(players_dict.keys())*babies_per_player+k)]
-        new_players_dict['player' + str(len(players_dict.keys())*babies_per_player+k)].co_ordinates_history_list = [
-            new_players_dict['player' + str(k)].co_ordinates_list]
+        co_ordinates_history_list=copy.deepcopy(new_players_dict['player' + str(k)].co_ordinates_list)
+        new_players_dict['player' + str(len(players_dict.keys())*babies_per_player+k)].co_ordinates_history_list = [co_ordinates_history_list]
         color = colors_dict[remaining_players_list[k]]
         new_players_dict['player' + str(len(players_dict.keys())*babies_per_player+k)].pygame_object = circle(
             new_players_dict['player' + str(len(players_dict.keys())*babies_per_player+k)].co_ordinates_list, color,
             radius=size_parameter // 2)
     del players_dict
-    return new_players_dict,population
+    return new_players_dict,population,max_gene,max_value
 
 def condition(players_dict,screen,inp=1):
     remaining_players_list=[]

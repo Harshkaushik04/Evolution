@@ -52,8 +52,10 @@ class circle:
         self.radius=radius
         self.color=color
     def draw(self, screen):
+        rect = pygame.Rect(0, 0, 2*self.radius, 2*self.radius)
+        rect.center = (self.co_ordinates_list[0],self.co_ordinates_list[1])
+        pygame.draw.rect(screen, self.color, rect)
         #pygame.draw.circle(screen, self.color, (self.co_ordinates_list[0], self.co_ordinates_list[1]), self.radius)
-        pygame.draw.rect(screen,self.color,(self.co_ordinates_list[0],self.co_ordinates_list[1],2*self.radius,2*self.radius))
     def update_position_and_radius(self, dx, dy, dr=0):
         self.co_ordinates_list[0]+=dx
         self.co_ordinates_list[1]+=dy

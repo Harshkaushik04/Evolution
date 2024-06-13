@@ -55,3 +55,12 @@ improvements needed in code:
 2. every time generation starts,make population to {default population} and not to a
 'convenient' number, as it reduces the effectiveness of evolution actual impact.
 3. high mutation rate
+
+14th june:
+1.fixed a major bug which was that i had initialized co_ordiantes_history_list as
+[co_ordinates_list] which is wrong because i had to deepcopy the variable and not
+use the variable itself,whcih would hopefully make player collision less probable
+2.also removed player_size and generalised play_size to size_parameter
+3.did major bug fix with combined_rect_co_ordinates in change function
+4. for the wall coincide problem, did fix by shifting the logic to the end of the
+change function instead of front since, after a player does action, i can revert it

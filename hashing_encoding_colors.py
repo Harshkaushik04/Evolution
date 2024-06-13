@@ -1,16 +1,41 @@
 import hashlib
 import random
 import numpy as np
-
 def encode_players_with_same_genes(genes_hexa_dict):
     colors_dict = {}
-    for player, hexa_list in genes_hexa_dict.items():
+    seeds_list=[]
+    seeds_set=set()
+    for player_name, hexa_list in genes_hexa_dict.items():
         hexa_list = sorted(hexa_list)  #list and shuffles list should have same encoding
         hash_value = hashlib.md5(''.join(hexa_list).encode()).hexdigest()
         seed = int(hash_value, 16)%(2**32-1)
+        seeds_list.append(seed)
+        seeds_set.add(seed)
         np.random.seed(seed)
-        colors_dict[player]=np.random.randint(1,255,3)
-    return colors_dict
+        colors_dict[player_name]=np.random.randint(1,255,3)
+    numbers_list=[]
+    for i in range(len(list(seeds_set))):
+        numbers_list.append(0)
+    for i in range(len(list((seeds_set)))):
+        for j in range(len(seeds_list)):
+            if list(seeds_set)[i]==seeds_list[j]:
+                numbers_list[i]+=1
+    max_value=max(numbers_list)
+    for i in range(len(numbers_list)):
+        if max_value==numbers_list[i]:
+            another_index_value=i
+            break
+    max_hash_value=list(seeds_set)[another_index_value]
+    for i in range(len(seeds_list)):
+        if max_hash_value==seeds_list[i]:
+            index_value=i
+            break
+    counter=0
+    for player_name,gene in genes_hexa_dict.items():
+        counter+=1
+        if counter==index_value:
+            max_gene=genes_hexa_dict[player_name]
+    return colors_dict,max_gene,max_value
 
 genes_hexa_dict={'player1': ['a91b5b06', '4fb23d3c', '753b50ef', 'f4e1c1e2', 'c84a2ff1', 'f8725c20', 'aaf04d8b', 'c9c48280'],
 'player2': ['4f83d11a', '28be7ef6', '4c8f589d', '8bb4d3d5', '547a3269', 'ae72c1cf', 'fa04b556', 'a15c947d'],
@@ -21,4 +46,4 @@ genes_hexa_dict={'player1': ['a91b5b06', '4fb23d3c', '753b50ef', 'f4e1c1e2', 'c8
 'player7': ['a8ee5a24','b5c6603d', '1d69e418', 'b37f745b', 'a86bf5c3', '8f6bb4ab', 'bcbcc8a5', 'eb0e3ab3']
 }
 
-#print(encode_players_with_same_genes(genes_hexa_dict))
+print(encode_players_with_same_genes(genes_hexa_dict))
