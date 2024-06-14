@@ -1,6 +1,6 @@
 import copy
 
-from useful_functions import gene_to_unprocessed_data,unprocessed_data_to_processed_data,processed_data_to_brain,graph_visuals,genes_hexa_dict_generator,co_ordinates_initialize_dict,genes_to_brain,directions_dict_generator,sense_to_inputs_activations,update_activations,position_errors_resolve,change,back_to_normal,mutate,replicate,condition,check,genes_hexa_list_to_genes_list
+from useful_functions import gene_to_unprocessed_data,unprocessed_data_to_processed_data,processed_data_to_brain,graph_visuals,genes_hexa_dict_generator,co_ordinates_initialize_dict,genes_to_brain,directions_dict_generator,sense_to_inputs_activations,update_activations,position_errors_resolve,change,back_to_normal,mutate,replicate,condition,check,genes_hexa_list_to_genes_list,restart_simulation
 from pygame_env import player,env,circle,playerencoder
 from hashing_encoding_colors import encode_players_with_same_genes
 import pygame
@@ -22,6 +22,7 @@ def main():
     remaining_players_number=[]
     pygame.init()
     screen=pygame.display.set_mode((env_width,env_height),0,32)
+    max_genes_list_combined=[]
     for generation in range(generations):
         if generation==0:
             genes_hexa_dict = genes_hexa_dict_generator(population, seed,genome_length)
@@ -29,6 +30,7 @@ def main():
             #print(f'co_ordinates_dict:{co_ordinates_dict}')
             directions_dict=directions_dict_generator(population)
             colors_dict,max_gene,max_value=encode_players_with_same_genes(genes_hexa_dict)
+            max_genes_list_combined.append(copy.deepcopy(max_gene))
             activation_inputs_dict={}
             players_dict={}
             for i in range(num_neurons[0]): #for unused brain input activations
@@ -37,7 +39,8 @@ def main():
                 flag = False
                 # if i==10:
                 #     flag=True
-                genes_hexa_list=genes_hexa_dict['player'+str(i)]
+                genes_hexa_list=genes_hexa_dict['player'+str(
+                    i)]
                 #print('genes_hexa_list:',genes_hexa_list)
                 unused_brain=genes_to_brain(genes_hexa_list,activation_inputs_dict,num_neurons,show_graph=flag)
                 # if i==10:
@@ -84,6 +87,7 @@ def main():
         players_another_json=json.dumps(another_dicti)
         list_json=json.dumps(remaining_players_number)
         max_gene_json=json.dumps(max_gene)
+        max_genes_list_combined_json=json.dumps(max_genes_list_combined)
         with open('another_testing_file.py', 'w') as f:
             f.write('players_genes_list=' + players_json)
             f.write('\n')
@@ -92,6 +96,8 @@ def main():
             f.write('remaining_players_number='+list_json)
             f.write('\n')
             f.write('num_neurons=[11,2,6]')
+            f.write('\n')
+            f.write('max_genes_list_combined='+max_genes_list_combined_json)
             f.write('\n')
             f.write('max_gene='+max_gene_json)
             f.write('\n')
@@ -106,58 +112,16 @@ def main():
         print('num_mutations:',num_mutations)
         print('num_players_after_mutation:',len(players_dict))
         players_dict,population,max_gene,max_value=replicate(players_dict,env_width,env_height,size_parameter,remaining_players_list,default_population=default_population)
+        max_genes_list_combined.append(copy.deepcopy(max_gene))
         print('num_players_after_replication:',default_population,' or ',len(players_dict))
     return players_dict,remaining_players_number
 
-players_dict=main()
-players_dict_copy=players_dict
-print(players_dict_copy)
-# def test():
-#     genes_hexa_list = [
-#         '3E2F1A4B', '7B9C0D8E', '5F4A7C1D', 'E9F8BBA6', '2C3D1E0F', '8A7B9C6D', '4F3E2D1C', '4B1A2C3D',
-#         'D9E8F7A6', 'B7C6D5E4', '1A2B3C4D', '5E4F6A7B', '3C2D1E0F', '8B7A9C6D', '4D3E2F1C', '0E1F2C3D',
-#         'F9E8D7C6', 'A7B6C5D4', '2B3A1C4D', '6F5E7A8B', '3D2C190F', '9B8A7C6D', '5C4D2F1E', '0D1E3C4F',
-#         'E8F7D6C5', 'B6A5C4D3', '1B2A3D4C', '4E5F6A7B', '3A2B1E0D', '7B8C9D6E', '5D4E2F1C', '0C1D3A4E'
-#     ]
-#
-#
-#     activation_inputs_dict={'S0':0.1,
-#                             'S1':0.3,
-#                             'S2':0.8,
-#                             'S3':0.5,
-#                             'S4':0.9,
-#                             'S5':1,
-#                             'S6':0.4,
-#                             'S7':0,
-#                             'S8': 0.1,
-#                             'S9': 0.3,
-#                             'S10': 0.8,
-#                             'S11': 0.5,
-#                             'S12': 0.9,
-#                             'S13': 1
-#                             }
-#     brain=genes_to_brain(genes_hexa_list,activation_inputs_dict,[14,4,9])
-#     for edge in brain.edge_list:
-#         print(f'{edge}:{brain.neurons_dict[edge].activation}')
-#     print("==========================================")
-#test()
+# players_dict=main()
+# players_dict_copy=players_dict
+# print(players_dict_copy)
 
-# for event in pygame.event.get():
-            #     if event.type == pygame.QUIT:
-            #         game_over = True
-            #     screen.fill((255, 255, 255))
-            #     for i in range(population):
-            #         players_dict['player' + str(i)].pygame_object.draw(screen)
-            #     # pygame.image.save(screen,rf'D:\Evolution\pygame_images_testing\images\image.png')
-            #     pygame.display.flip()
-
-    # game_over = False
-    # while not game_over:
-    #     for event in pygame.event.get():
-    #         if event.type==pygame.QUIT:
-    #             game_over=True
-    #         screen.fill((255,255,255))
-    #         for i in range(population):
-    #             players_dict['player' + str(i)].pygame_object.draw(screen)
-    #         #pygame.image.save(screen,rf'D:\Evolution\pygame_images_testing\images\image.png')
-    #         pygame.display.flip()
+players_genes_hexa_list={"player0_genes_hexa_list": ["1c2a1f74", "371aeadd", "5d53b896", "f2e37438", "eed8dfc7", "62f35ba4", "d8219341", "ad3d2ad5", "83f1ddf2", "f21cdfa5", "8df3a12d", "fea48f3c"], "player1_genes_hexa_list": ["1c2a1f74", "371aeadd", "5d53b896", "f2e37438", "eed8dfc7", "62f35ba4", "d8219341", "ad3d2ad5", "83f1ddf2", "f21cdfa5", "8df3a12d", "fea48f3c"], "player2_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player3_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player4_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player5_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player6_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player7_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player8_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player9_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player10_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player11_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player12_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player13_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player14_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player15_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player16_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player17_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player18_genes_hexa_list": ["1e55c5d7", "96237b79", "67372124", "9a99667b", "3c1a3c4c", "5afe362b", "be5316f9", "e8b6f63e", "1281b6ba", "e2a9661d", "c68955f7", "2611cd54"], "player19_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player20_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player21_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player22_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player23_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player24_genes_hexa_list": ["f497c16e", "7fefe5d2", "c42fd8e9", "7b7aa2fc", "b51df5a4", "37a8d3f5", "4cef14a8", "451a8a5e", "bf6f7b6e", "11881ee8", "99de4ebb", "583613c8"], "player25_genes_hexa_list": ["f497c16e", "7fefe5d2", "c42fd8e9", "7b7aa2fc", "b51df5a4", "37a8d3f5", "4cef14a8", "451a8a5e", "bf6f7b6e", "11881ee8", "99de4ebb", "583613c8"], "player26_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player27_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player28_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player29_genes_hexa_list": ["d7aeaeba", "21453dbd", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player30_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player31_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player32_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player33_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player34_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player35_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player36_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player37_genes_hexa_list": ["f497c16e", "7fefe5d2", "c42fd8e9", "7b7aa2fc", "b51df5a4", "37a8d3f5", "4cef14a8", "451a8a5e", "bf6f7b6e", "11881ee8", "99de4ebb", "583613c8"], "player38_genes_hexa_list": ["f497c16e", "7fefe5d2", "c42fd8e9", "7b7aa2fc", "b51df5a4", "37a8d3f5", "4cef14a8", "451a8a5e", "bf6f7b6e", "11881ee8", "99de4ebb", "583613c8"], "player39_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player40_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player41_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player42_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player43_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player44_genes_hexa_list": ["d7aeaeba", "21453d5d", "d72eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player45_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player46_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player47_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player48_genes_hexa_list": ["d7aeaeba", "21453dbd", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player49_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player50_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player51_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player52_genes_hexa_list": ["f497c16e", "7fefe5d2", "c42fd8e9", "7b7aa2fc", "b51df5a4", "37a8d3f5", "4cef14a8", "451a8a5e", "bf6f7b6e", "11881ee8", "99de4ebb", "583613c8"], "player53_genes_hexa_list": ["f497c16e", "7fefe5d2", "c42fd8e9", "7b7aa2fc", "b51df5a4", "37a8d3f5", "4cef14a8", "451a8a5e", "bf6f7b6e", "11881ee8", "99de4ebb", "583613c8"], "player54_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player55_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player56_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"], "player57_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player58_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player59_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player60_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player61_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player62_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player63_genes_hexa_list": ["33fe356a", "4a9a6439", "d8bca62d", "d19ffdba", "9bd79f58", "daa7c5c6", "ca79ee9e", "bf171fa2", "d2ae3886", "19a52933", "399fe738", "3be52d4d"], "player64_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player65_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player66_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player67_genes_hexa_list": ["d7aeaeba", "21453d5d", "472eddb6", "46d823fe", "23db7e2e", "2ac3fb26", "3fadb5ef", "46387622", "2bcf7551", "d1b914d8", "cb7b2bbf", "bcfc27c1"], "player68_genes_hexa_list": ["2a345da9", "1c6d41d4", "752ddf6f", "7b2e5419", "8afee823", "f7dba5e4", "7fc797b6", "bba943c5", "a5375494", "cbb2f8e3", "9ff18519", "1aeefc37"]}
+genes_hexa_dict=copy.deepcopy(players_genes_hexa_list)
+for i in range(len(list(genes_hexa_dict.keys()))):
+    genes_hexa_dict[f'player{i}']=genes_hexa_dict.pop(f'player{i}_genes_hexa_list')
+restart_simulation(genes_hexa_dict,16)
