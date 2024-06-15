@@ -21,20 +21,25 @@ def encode_players_with_same_genes(genes_hexa_dict):
             if list(seeds_set)[i]==seeds_list[j]:
                 numbers_list[i]+=1
     max_value=max(numbers_list)
+    print('max value:',max_value)
     for i in range(len(numbers_list)):
         if max_value==numbers_list[i]:
             another_index_value=i
+            print('another_index_value:',i)
             break
     max_hash_value=list(seeds_set)[another_index_value]
+    print('max hash value:',max_hash_value)
     for i in range(len(seeds_list)):
         if max_hash_value==seeds_list[i]:
             index_value=i
+            print('index value:',index_value)
             break
     counter=0
     for player_name,gene in genes_hexa_dict.items():
-        counter+=1
         if counter==index_value:
             max_gene=genes_hexa_dict[player_name]
+            print('max_gene:',max_gene)
+        counter += 1
     return colors_dict,max_gene,max_value
 
 genes_hexa_dict={'player1': ['a91b5b06', '4fb23d3c', '753b50ef', 'f4e1c1e2', 'c84a2ff1', 'f8725c20', 'aaf04d8b', 'c9c48280'],
