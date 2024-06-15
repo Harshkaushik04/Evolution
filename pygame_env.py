@@ -19,7 +19,7 @@ class player:
             copy.deepcopy(self.pygame_object),
             copy.deepcopy(self.direction),
             copy.deepcopy(self.co_ordinates_history_list),
-            copy.deepcopy(self.rect_co_ordinates_list)
+            copy.deepcopy(self.rect_co_ordinates_list),
         )
         return new_copy
     def to_dict(self):
