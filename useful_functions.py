@@ -866,7 +866,7 @@ def check(players_dict,screen):
             wrong_players_co_ordinates.append(player.co_ordinates_list)
     return wrong_players_co_ordinates
 
-def restart_simulation(genes_hexa_dict,generations_done,filename,file_to_save,population,default_population):
+def restart_simulation(genes_hexa_dict,generations_done,filename,file_to_save,population,default_population,inp):
     size_parameter = 5
     num_neurons = [11, 2, 6]  # [sensory_neurons,internal_neurons,output_neurons]
     env_width = 500
@@ -940,7 +940,7 @@ def restart_simulation(genes_hexa_dict,generations_done,filename,file_to_save,po
             players_dict=back_to_normal(players_dict,stored_neurons_dict,stored_incoming_exhausted_dict)
             #print(rf'D:\New_Evolution_improved_12_genome_length_images\generation{generation+1}\image{step+generation*steps_per_gen+1}.png')
             pygame.image.save(screen,os.path.join(file_to_save,rf'generation{generation+1}\image{step+generation*steps_per_gen+1}.png'))
-        players_dict,remaining_players_list=condition(players_dict,screen,inp=2)
+        players_dict,remaining_players_list=condition(players_dict,screen,inp=inp)
         remaining_players_number.append(len(remaining_players_list))
         dicti = {}
         another_dicti={}
