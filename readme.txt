@@ -64,3 +64,7 @@ use the variable itself,whcih would hopefully make player collision less probabl
 3.did major bug fix with combined_rect_co_ordinates in change function
 4. for the wall coincide problem, did fix by shifting the logic to the end of the
 change function instead of front since, after a player does action, i can revert it
+
+24th june:
+did major bugfix in the restart_simulation function by adding an inp argument
+to change input of condition function.
