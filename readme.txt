@@ -68,3 +68,6 @@ change function instead of front since, after a player does action, i can revert
 24th june:
 did major bugfix in the restart_simulation function by adding an inp argument
 to change input of condition function.
+
+29th june:
+did major bugfix in blockage_left_right and blockage_forward of sensory neurons
