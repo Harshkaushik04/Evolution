@@ -71,3 +71,14 @@ to change input of condition function.
 
 29th june:
 did major bugfix in blockage_left_right and blockage_forward of sensory neurons
+
+8 july:
+did bugfix in tanhlist multiple repetition,working on 3-cycle avoidance in brain graph
+
+9 july:
+(major bugfix) made 3-cycle avoidance work by adding a mechanism to remove internal neuron having
+no outgoing or incoming edges after the cycle avoidance code
+
+12th july:
+did major bugfix in restart_simulation function by adding basic_info argument for
+much needed customization

@@ -934,17 +934,8 @@ def check(players_dict,screen):
             wrong_players_co_ordinates.append(player.co_ordinates_list)
     return wrong_players_co_ordinates
 
-def restart_simulation(genes_hexa_dict,generations_done,filename,file_to_save,population,default_population,inp):
-    size_parameter = 5
-    num_neurons = [11, 2, 6]  # [sensory_neurons,internal_neurons,output_neurons]
-    env_width = 500
-    env_height = 500
-    population = population
-    default_population = default_population
-    steps_per_gen = 120
-    genome_length = 12
-    generations = 500
-    seed = 0
+def restart_simulation(basic_info,genes_hexa_dict,generations_done,filename,file_to_save,inp):
+    size_parameter,num_neurons,env_width,env_height,population,default_population,steps_per_gen,genome_length,generations,seed=basic_info
     remaining_players_number = []
     pygame.init()
     screen = pygame.display.set_mode((env_width, env_height), 0, 32)
