@@ -1,4 +1,4 @@
-Day 1:
+8th june 2024:
 i have (hopefully)implemented the genes hexadecimal all the way upto genes list and
 brain.Many obstacles came like bidirectional connections,self connected nodes,etc in
 forward propagation of brain, which i resolved by adding some objects like
@@ -34,13 +34,13 @@ eg. 1. all the players on left side of the screen dies and all on right side sur
 6. maybe add new features like strength,social relations,not kill infront of
 others but can kill otherwise,etc
 
-Day2:
+9th june 2024:
 1. completed sense and update function
 2. introduced a very important parameter: size_parameter and did all the modifications in the
 code according to that.
 3. did bug fix for 2 players co-inciding symmetrically and wall-player co-inciding
 
-to do next:
+to do tomorrow:
 1. further bugfix the co inciding problem since we only considered, for example my_player
 is moving right and player is there so only wrote 2 conditions which were for x direction
 but we have to write 2 more conditions for y direction(since if y of my_player and player
@@ -48,7 +48,7 @@ are very different then they will not coincide)
 2. correct the position_errors_resolve function
 3. complete change and replicate function,make condition: run simulation
 
-Day 3:
+12th june 2024:
 simulation is running on condition that all players on east side(50 percent dies),
 improvements needed in code:
 1. better boundaries of each player so they dont come into each others boundary
@@ -56,7 +56,7 @@ improvements needed in code:
 'convenient' number, as it reduces the effectiveness of evolution actual impact.
 3. high mutation rate
 
-Day4:
+14th june:
 1.fixed a major bug which was that i had initialized co_ordiantes_history_list as
 [co_ordinates_list] which is wrong because i had to deepcopy the variable and not
 use the variable itself,whcih would hopefully make player collision less probable
@@ -65,20 +65,20 @@ use the variable itself,whcih would hopefully make player collision less probabl
 4. for the wall coincide problem, did fix by shifting the logic to the end of the
 change function instead of front since, after a player does action, i can revert it
 
-Day5:
+24th june:
 did major bugfix in the restart_simulation function by adding an inp argument
 to change input of condition function.
 
-Day6:
+29th june:
 did major bugfix in blockage_left_right and blockage_forward of sensory neurons
 
-Day7:
+8 july:
 did bugfix in tanhlist multiple repetition,working on 3-cycle avoidance in brain graph
 
-Day8:
+9 july:
 (major bugfix) made 3-cycle avoidance work by adding a mechanism to remove internal neuron having
 no outgoing or incoming edges after the cycle avoidance code
 
-Day9:
+12th july:
 did major bugfix in restart_simulation function by adding basic_info argument for
 much needed customization
