@@ -1,3 +1,15 @@
+Project working:
+We can set any condition on survival of the simulated beings, here i have tested 3 conditions of survival and sharing the results:
+1. beings which are in the up 20 percent of environment survive
+Generation1:
+https://github.com/user-attachments/assets/4bb98735-a999-4650-b59d-fc0c5e5d3945
+Generation130:
+https://github.com/user-attachments/assets/5c5007ef-13ce-4560-b664-f5b2de69992a
+
+
+
+
+Progress Tracking 
 8th june 2024:
 i have (hopefully)implemented the genes hexadecimal all the way upto genes list and
 brain.Many obstacles came like bidirectional connections,self connected nodes,etc in
