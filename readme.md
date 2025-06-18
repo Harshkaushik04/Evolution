@@ -1,12 +1,19 @@
 Project working:
 We can set any condition on survival of the simulated beings, here i have tested 3 conditions of survival and sharing the results:
-1. beings which are in the up 20 percent of environment survive
-Generation1:
-https://github.com/user-attachments/assets/4bb98735-a999-4650-b59d-fc0c5e5d3945
-Generation130:
-https://github.com/user-attachments/assets/5c5007ef-13ce-4560-b664-f5b2de69992a
+1. beings which are in up 20 percent survive(Generation 1 and Generation 130)
+   
+![generation1](https://github.com/user-attachments/assets/05469adf-c2aa-4d7e-a4ad-44f960980d43)
+![generation130](https://github.com/user-attachments/assets/b5fa4204-c15b-4c61-8e6d-c1c48e126486)
 
+2. beings which are in left 20 percent survive(Generation 1 and Generation 130)
+   
+![generation1](https://github.com/user-attachments/assets/e59f5ca7-adec-4106-b2f6-6401af8793b6)
+![generation130](https://github.com/user-attachments/assets/e1153fe2-15fd-448f-b249-e6215b14e1e3)
 
+3. beings which are in middle 20 percent survive(Generation 1 and Generation 100)
+   
+![generation1](https://github.com/user-attachments/assets/677e37af-22e9-489b-a31c-129ed6d67f3b)
+![generation100](https://github.com/user-attachments/assets/54e3c28a-8877-4a66-8390-b8881be4c810)
 
 
 Progress Tracking 
