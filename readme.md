@@ -15,6 +15,10 @@ We can set any condition on survival of the simulated beings, here i have tested
 ![generation1](https://github.com/user-attachments/assets/677e37af-22e9-489b-a31c-129ed6d67f3b)
 ![generation100](https://github.com/user-attachments/assets/54e3c28a-8877-4a66-8390-b8881be4c810)
 
+4. beings which are in 4 corners survive(1 corner= 0.2*total_length,0.2*total_width)(Generation 1 and Generation 110)
+
+![generation1](https://github.com/user-attachments/assets/e6aa19b0-0a99-4ed4-bf69-fefdbbe1e0fb)
+![generation110](https://github.com/user-attachments/assets/2ab6f1eb-b681-4b47-aff0-f7462c9afd31)
 
 Progress Tracking 
 8th june 2024:
